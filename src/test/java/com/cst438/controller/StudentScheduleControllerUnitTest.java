@@ -25,7 +25,11 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import java.sql.Date;
 import java.time.LocalDate;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -43,6 +47,7 @@ public class StudentScheduleControllerUnitTest {
     int testStudentId;
     Date originalAddDate;
     Date originalAddDeadline;
+    Date originalDropDeadline;
 
     @Autowired
     private WebTestClient client;
@@ -76,15 +81,17 @@ public class StudentScheduleControllerUnitTest {
 
         testStudentId = student.getId();
 
-        // make sure the existing section is open for enrollment
+        // make sure the existing section is open for enrollment and dropping
         Section section = sectionRepository.findById(testSectionNo).orElseThrow();
         Term term = section.getTerm();
 
         originalAddDate = term.getAddDate();
         originalAddDeadline = term.getAddDeadline();
+        originalDropDeadline = term.getDropDeadline();
 
         term.setAddDate(Date.valueOf(LocalDate.now().minusDays(1)));
         term.setAddDeadline(Date.valueOf(LocalDate.now().plusDays(1)));
+        term.setDropDeadline(Date.valueOf(LocalDate.now().plusDays(1)));
         termRepository.save(term);
     }
 
@@ -104,8 +111,10 @@ public class StudentScheduleControllerUnitTest {
 
         Section section = sectionRepository.findById(testSectionNo).orElseThrow();
         Term term = section.getTerm();
+
         term.setAddDate(originalAddDate);
         term.setAddDeadline(originalAddDeadline);
+        term.setDropDeadline(originalDropDeadline);
         termRepository.save(term);
     }
 
@@ -181,6 +190,65 @@ public class StudentScheduleControllerUnitTest {
                 .sendMessage(eq("addEnrollment"), any());
     }
 
+    @Test
+    public void dropCourseTest() {
+        User student = userRepository.findByEmail(testStudentEmail);
+        Section section = sectionRepository.findById(testSectionNo).orElseThrow();
+
+        Enrollment enrollment = new Enrollment();
+        enrollment.setStudent(student);
+        enrollment.setSection(section);
+        enrollment.setGrade(null);
+        enrollmentRepository.save(enrollment);
+
+        int enrollmentId = enrollment.getEnrollmentId();
+        String jwt = login(testStudentEmail, testStudentPassword);
+
+        client.delete()
+                .uri("/enrollments/" + enrollmentId)
+                .headers(headers -> headers.setBearerAuth(jwt))
+                .exchange()
+                .expectStatus().isOk();
+
+        // check that the enrollment was deleted from the database
+        assertFalse(enrollmentRepository.findById(enrollmentId).isPresent());
+
+        // check that the deletion was sent to the gradebook
+        verify(gradebookService, times(1))
+                .sendMessage("deleteEnrollment", enrollmentId);
+    }
+
+    @Test
+    public void dropCourseAfterDeadlineTest() {
+        User student = userRepository.findByEmail(testStudentEmail);
+        Section section = sectionRepository.findById(testSectionNo).orElseThrow();
+        Term term = section.getTerm();
+
+        term.setDropDeadline(Date.valueOf(LocalDate.now().minusDays(1)));
+        termRepository.save(term);
+
+        Enrollment enrollment = new Enrollment();
+        enrollment.setStudent(student);
+        enrollment.setSection(section);
+        enrollment.setGrade(null);
+        enrollmentRepository.save(enrollment);
+
+        int enrollmentId = enrollment.getEnrollmentId();
+        String jwt = login(testStudentEmail, testStudentPassword);
+
+        client.delete()
+                .uri("/enrollments/" + enrollmentId)
+                .headers(headers -> headers.setBearerAuth(jwt))
+                .exchange()
+                .expectStatus().isBadRequest();
+
+        // check that the enrollment was not deleted
+        assertTrue(enrollmentRepository.findById(enrollmentId).isPresent());
+
+        verify(gradebookService, never())
+                .sendMessage(eq("deleteEnrollment"), any());
+    }
+
     private String login(String email, String password) {
         EntityExchangeResult<LoginDTO> response = client.get()
                 .uri("/login")
@@ -198,3 +266,4 @@ public class StudentScheduleControllerUnitTest {
 
         return loginDTO.jwt();
     }
+}
