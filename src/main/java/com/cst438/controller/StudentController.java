@@ -38,8 +38,48 @@ public class StudentController {
 		// method to retrive the enrollments given the year, semester and id 
 		// of the logged in student.
 		// Return a list of EnrollmentDTO.
+       User student = userRepository.findByEmail(principal.getName());
 
-      return null;
+       if (student == null) {
+           throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid student email");
+       }
+
+       List<Enrollment> enrollments =
+               enrollmentRepository.findByYearAndSemesterOrderByCourseId(
+                       year,
+                       semester,
+                       student.getId()
+               );
+
+       List<EnrollmentDTO> dtoList = new ArrayList<>();
+
+       for (Enrollment enrollment : enrollments) {
+           Section section = enrollment.getSection();
+           Course course = section.getCourse();
+           Term term = section.getTerm();
+
+           EnrollmentDTO dto = new EnrollmentDTO(
+                   enrollment.getEnrollmentId(),
+                   enrollment.getGrade(),
+                   student.getId(),
+                   student.getName(),
+                   student.getEmail(),
+                   course.getCourseId(),
+                   course.getTitle(),
+                   section.getSectionId(),
+                   section.getSectionNo(),
+                   section.getBuilding(),
+                   section.getRoom(),
+                   section.getTimes(),
+                   course.getCredits(),
+                   term.getYear(),
+                   term.getSemester()
+           );
+
+           dtoList.add(dto);
+       }
+
+       return dtoList;
    }
 
    // return transcript for student
