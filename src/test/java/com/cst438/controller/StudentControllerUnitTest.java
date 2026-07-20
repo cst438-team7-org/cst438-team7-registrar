@@ -43,7 +43,7 @@ public class StudentControllerUnitTest {
     ) {
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-        // create a student for the schedule tests
+        // create a student for the schedule and transcript tests
         User student = new User();
         student.setName(testStudentName);
         student.setEmail(testStudentEmail);
@@ -59,7 +59,7 @@ public class StudentControllerUnitTest {
         Enrollment enrollment = new Enrollment();
         enrollment.setStudent(student);
         enrollment.setSection(section);
-        enrollment.setGrade(null);
+        enrollment.setGrade("A");
         enrollmentRepository.save(enrollment);
 
         testEnrollmentId = enrollment.getEnrollmentId();
@@ -99,7 +99,7 @@ public class StudentControllerUnitTest {
         EnrollmentDTO enrollment = schedule.get(0);
 
         assertEquals(testEnrollmentId, enrollment.enrollmentId());
-        assertNull(enrollment.grade());
+        assertEquals("A", enrollment.grade());
         assertEquals(testStudentId, enrollment.studentId());
         assertEquals(testStudentName, enrollment.name());
         assertEquals(testStudentEmail, enrollment.email());
@@ -136,6 +136,55 @@ public class StudentControllerUnitTest {
 
         assertNotNull(schedule);
         assertTrue(schedule.isEmpty());
+    }
+
+    @Test
+    public void getStudentTranscriptTest() {
+        String jwt = login(testStudentEmail, testStudentPassword);
+
+        EntityExchangeResult<List<EnrollmentDTO>> response = client.get()
+                .uri("/transcripts")
+                .headers(headers -> headers.setBearerAuth(jwt))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBodyList(EnrollmentDTO.class)
+                .returnResult();
+
+        List<EnrollmentDTO> transcript = response.getResponseBody();
+
+        assertNotNull(transcript);
+        assertEquals(1, transcript.size());
+
+        EnrollmentDTO enrollment = transcript.get(0);
+
+        assertEquals(testEnrollmentId, enrollment.enrollmentId());
+        assertEquals("A", enrollment.grade());
+        assertEquals(testStudentId, enrollment.studentId());
+        assertEquals(testStudentName, enrollment.name());
+        assertEquals(testStudentEmail, enrollment.email());
+        assertEquals("cst489", enrollment.courseId());
+        assertEquals("Software Engineering", enrollment.title());
+        assertEquals(1, enrollment.sectionId());
+        assertEquals(1, enrollment.sectionNo());
+        assertEquals("90", enrollment.building());
+        assertEquals("B104", enrollment.room());
+        assertEquals("W F 10-11", enrollment.times());
+        assertEquals(4, enrollment.credits());
+        assertEquals(2026, enrollment.year());
+        assertEquals("Fall", enrollment.semester());
+    }
+
+    @Test
+    public void getTranscriptRequiresStudentLoginTest() {
+        String adminJwt = login("admin@csumb.edu", "admin");
+
+        client.get()
+                .uri("/transcripts")
+                .headers(headers -> headers.setBearerAuth(adminJwt))
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isForbidden();
     }
 
     private String login(String email, String password) {
