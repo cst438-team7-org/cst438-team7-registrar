@@ -137,5 +137,43 @@ public class StudentScheduleController {
         // check that enrollment belongs to the logged in student
         // and that today is not after the dropDeadLine for the term.
 
+        User student = userRepository.findByEmail(principal.getName());
+
+        if (student == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "student not found"
+            );
+        }
+
+        Enrollment enrollment =
+                enrollmentRepository.findById(enrollmentId).orElse(null);
+
+        if (enrollment == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "enrollment not found"
+            );
+        }
+
+        if (enrollment.getStudent().getId() != student.getId()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "enrollment does not belong to student"
+            );
+        }
+
+        Term term = enrollment.getSection().getTerm();
+        Date today = new Date();
+
+        if (today.after(term.getDropDeadline())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "drop deadline has passed"
+            );
+        }
+
+        enrollmentRepository.deleteById(enrollmentId);
+        gradebook.sendMessage("deleteEnrollment", enrollmentId);
     }
 }
