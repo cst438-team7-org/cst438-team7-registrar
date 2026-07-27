@@ -77,6 +77,10 @@ public class AddAssignmentSystemTest {
         String addDueDatePath = addDialogPath + "input[@id='dueDate']";
         String addSaveButtonPath = addDialogPath + "button[@id='saveButton']";
 
+        // Try to add assignment with no title
+        driver.findElement(By.xpath(addSaveButtonPath)).click();
+        // Check message
+        assertNotNull(driver.findElement(By.xpath("//*[contains(text(), 'cannot be blank')]")));
 
         // Get Due Date
         int year = 2025;
