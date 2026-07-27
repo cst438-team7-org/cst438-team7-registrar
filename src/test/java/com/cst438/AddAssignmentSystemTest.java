@@ -82,6 +82,14 @@ public class AddAssignmentSystemTest {
         // Check message
         assertNotNull(driver.findElement(By.xpath("//*[contains(text(), 'cannot be blank')]")));
 
+        // Try to add assignment with invalid characters in title
+        driver.findElement(By.xpath(addTitlePath)).sendKeys("!@#$%^&*()");
+        driver.findElement(By.xpath(addSaveButtonPath)).click();
+        // Check message
+        assertNotNull(driver.findElement(By.xpath("//*[contains(text(), 'invalid char in title')]")));
+        // Clear title input
+        driver.findElement(By.xpath(addTitlePath)).clear();
+
         // Get Due Date
         int year = 2025;
         int month = random.nextInt(5) + 8; // August-December
