@@ -90,6 +90,17 @@ public class AddAssignmentSystemTest {
         // Clear title input
         driver.findElement(By.xpath(addTitlePath)).clear();
 
+        // Get Assignment Title
+        String title = "Assignment " + Math.abs(random.nextInt());
+
+        // Try to add assignment with invalid due date
+        // Enter title
+        driver.findElement(By.xpath(addTitlePath)).sendKeys(title);
+        // Try to save assignment
+        driver.findElement(By.xpath(addSaveButtonPath)).click();
+        // Check message
+        assertNotNull(driver.findElement(By.xpath("//*[contains(text(), 'invalid due date')]")));
+
         // Get Due Date
         int year = 2025;
         int month = random.nextInt(5) + 8; // August-December
@@ -104,9 +115,6 @@ public class AddAssignmentSystemTest {
         String dueDateInput = String.format("%02d%02d%04d", month, day, year);
 
         // Add Assignment
-        // Enter Title
-        String title = "Assignment " + Math.abs(random.nextInt());
-        driver.findElement(By.xpath(addTitlePath)).sendKeys(title);
         // Enter Due Date
         driver.findElement(By.xpath(addDueDatePath)).sendKeys(dueDateInput);
         // Click save
