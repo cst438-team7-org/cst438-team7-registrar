@@ -3,6 +3,7 @@ package com.cst438;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Random;
 
 import org.junit.jupiter.api.AfterEach;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -65,7 +67,7 @@ public class AddAssignmentSystemTest {
         driver.findElement(By.id("selectTermButton")).click();
 
         // Navigate to cst599 assignments
-        String assignmentsLinkPath = "//td[text()='cst599']/../td/*[@id='assignmentsLink']";
+        String assignmentsLinkPath = "//td[text()='cst599']/..//*[@id='assignmentsLink']";
         driver.findElement(By.xpath(assignmentsLinkPath)).click();
 
         // Navigate to add assignment dialog
@@ -123,5 +125,48 @@ public class AddAssignmentSystemTest {
         assertNotNull(driver.findElement(By.xpath("//*[contains(text(), 'successfully created')]")));
         // Click close
         driver.findElement(By.xpath(addDialogPath + "button[@id='closeButton']")).click();
+
+        // Check that assignment was added to list
+        String assignmentTitlePath = "//td[text()='" + title + "']";
+        assertNotNull(driver.findElement(By.xpath(assignmentTitlePath)));
+
+        // Navigate to assignment grades
+        String gradeButtonPath = assignmentTitlePath + "/..//button[@id='gradeButton']";
+        driver.findElement(By.xpath(gradeButtonPath)).click();
+
+        // Grade dialog variables
+        String[] grades = {"60", "88", "98"};
+        List<WebElement> inputs;
+        String openDialogPath = "//dialog[@open]";
+        String openDialogInputsPath = openDialogPath + "//input";
+        String openDialogSaveButtonPath = openDialogPath + "//button[text()='Save']";
+        String openDialogCloseButtonPath = openDialogPath + "//button[text()='Close']";
+
+        // Enter and save grades
+        // Get inputs
+        inputs = driver.findElements(By.xpath(openDialogInputsPath));
+        assertEquals(inputs.size(), grades.length);
+        // Enter grades
+        for(int i = 0; i < grades.length; i++) {
+            inputs.get(i).sendKeys(grades[i]);
+        }
+        // Save Grades
+        driver.findElement(By.xpath(openDialogSaveButtonPath)).click();
+        // Check message
+        // Close grades dialog
+        driver.findElement(By.xpath(openDialogCloseButtonPath)).click();
+
+        // Check that grades were saved
+        // Reopen grades dialog
+        driver.findElement(By.xpath(gradeButtonPath)).click();
+        // Check that entered grades match
+        inputs = driver.findElements(By.xpath(openDialogInputsPath));
+        assertEquals(inputs.size(), grades.length);
+        for(int i = 0; i < grades.length; i++) {
+            assertEquals(inputs.get(i).getAttribute("value"), grades[i]);
+        }
+
+        // Close grades dialog
+        driver.findElement(By.xpath(openDialogCloseButtonPath)).click();
     }
 }
