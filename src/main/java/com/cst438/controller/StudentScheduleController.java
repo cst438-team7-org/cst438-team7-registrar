@@ -85,6 +85,16 @@ public class StudentScheduleController {
             );
         }
 
+        long enrolledSeats =
+                enrollmentRepository.countBySectionNo(sectionNo);
+
+        if (enrolledSeats >= section.getCapacity()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "course is full"
+            );
+        }
+
         Term term = section.getTerm();
         Date today = new Date();
 

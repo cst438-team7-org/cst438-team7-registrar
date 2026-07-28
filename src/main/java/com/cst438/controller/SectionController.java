@@ -1,6 +1,7 @@
 package com.cst438.controller;
 
 import com.cst438.domain.*;
+import com.cst438.dto.OpenSectionDTO;
 import com.cst438.dto.SectionDTO;
 import com.cst438.dto.UserDTO;
 import com.cst438.service.GradebookServiceProxy;
@@ -30,18 +31,22 @@ public class SectionController {
 
     private final GradebookServiceProxy gradebook;
 
+    private final EnrollmentRepository enrollmentRepository;
+
     public SectionController(
             CourseRepository courseRepository,
             SectionRepository sectionRepository,
             TermRepository termRepository,
             UserRepository userRepository,
-            GradebookServiceProxy gradebook
+            GradebookServiceProxy gradebook,
+            EnrollmentRepository enrollmentRepository
     ) {
         this.courseRepository = courseRepository;
         this.sectionRepository = sectionRepository;
         this.termRepository = termRepository;
         this.userRepository = userRepository;
         this.gradebook = gradebook;
+        this.enrollmentRepository = enrollmentRepository;
     }
 
 
@@ -74,6 +79,7 @@ public class SectionController {
         s.setRoom(dto.room());
         s.setTimes(dto.times());
         s.setInstructorEmail(u.getEmail());
+        s.setCapacity(30);
         sectionRepository.save(s);
         SectionDTO result = new SectionDTO(
                 s.getSectionNo(),
@@ -174,11 +180,18 @@ public class SectionController {
     // sections that are open for enrollment
     // today's date not before addDate and not after addDeadline
     @GetMapping("/sections/open")
-    public List<SectionDTO> getOpenSectionsForEnrollment() {
+    public List<OpenSectionDTO> getOpenSectionsForEnrollment() {
 
         return sectionRepository.findByOpenOrderByCourseIdSectionId().stream().map( s -> {
             User instructor = userRepository.findByEmail(s.getInstructorEmail());
-            return new SectionDTO(
+
+            long enrolledSeats =
+                    enrollmentRepository.countBySectionNo(s.getSectionNo());
+
+            long availableSeats =
+                    Math.max(s.getCapacity() - enrolledSeats, 0);
+
+            return new OpenSectionDTO(
                     s.getSectionNo(),
                     s.getTerm().getYear(),
                     s.getTerm().getSemester(),
@@ -189,7 +202,10 @@ public class SectionController {
                     s.getRoom(),
                     s.getTimes(),
                     instructor.getName(),
-                    s.getInstructorEmail()
+                    s.getInstructorEmail(),
+                    s.getCapacity(),
+                    enrolledSeats,
+                    availableSeats
             );
         }).toList();
     }
