@@ -44,4 +44,4 @@ insert into section (
     instructor_email,
     capacity
 ) values
-(1, 'cst489', 1, 12, '90', 'B104', 'W F 10-11', 'ted@csumb.edu', 1);
+(1, 'cst489', 1, 12, '90', 'B104', 'W F 10-11', 'ted@csumb.edu', 30);

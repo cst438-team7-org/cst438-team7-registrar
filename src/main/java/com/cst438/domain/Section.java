@@ -1,5 +1,6 @@
 package com.cst438.domain;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -27,6 +28,8 @@ public class Section {
     private String room;
     private String times;
     private String instructorEmail;
+
+    @Column(insertable = false)
     private int capacity;
 
     @ManyToOne

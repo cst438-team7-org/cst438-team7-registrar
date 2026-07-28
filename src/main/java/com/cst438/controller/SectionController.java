@@ -79,7 +79,6 @@ public class SectionController {
         s.setRoom(dto.room());
         s.setTimes(dto.times());
         s.setInstructorEmail(u.getEmail());
-        s.setCapacity(30);
         sectionRepository.save(s);
         SectionDTO result = new SectionDTO(
                 s.getSectionNo(),
