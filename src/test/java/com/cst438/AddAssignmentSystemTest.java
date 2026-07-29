@@ -145,7 +145,7 @@ public class AddAssignmentSystemTest {
         // Enter and save grades
         // Get inputs
         inputs = driver.findElements(By.xpath(openDialogInputsPath));
-        assertEquals(inputs.size(), grades.length);
+        assertEquals(grades.length, inputs.size());
         // Enter grades
         for(int i = 0; i < grades.length; i++) {
             inputs.get(i).sendKeys(grades[i]);
@@ -162,7 +162,7 @@ public class AddAssignmentSystemTest {
         driver.findElement(By.xpath(gradeButtonPath)).click();
         // Check that entered grades match
         inputs = driver.findElements(By.xpath(openDialogInputsPath));
-        assertEquals(inputs.size(), grades.length);
+        assertEquals(grades.length, inputs.size());
         for(int i = 0; i < grades.length; i++) {
             assertEquals(inputs.get(i).getAttribute("value"), grades[i]);
         }
