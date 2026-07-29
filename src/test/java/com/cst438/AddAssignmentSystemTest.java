@@ -152,6 +152,7 @@ public class AddAssignmentSystemTest {
         }
         // Save Grades
         driver.findElement(By.xpath(openDialogSaveButtonPath)).click();
+        assertNotNull(driver.findElement(By.xpath("//*[contains(text(), 'Grades saved')]")));
         // Check message
         // Close grades dialog
         driver.findElement(By.xpath(openDialogCloseButtonPath)).click();
