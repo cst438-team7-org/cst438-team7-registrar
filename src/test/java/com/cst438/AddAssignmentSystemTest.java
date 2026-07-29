@@ -59,19 +59,23 @@ public class AddAssignmentSystemTest {
         driver.findElement(By.id("email")).sendKeys(email);
         driver.findElement(By.id("password")).sendKeys(password);
         driver.findElement(By.id("loginButton")).click();
+        Thread.sleep(DELAY);
 
         // Enter Term year and semester
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("year")));
         driver.findElement(By.id("year")).sendKeys("2025");
         driver.findElement(By.id("semester")).sendKeys("Fall");
         driver.findElement(By.id("selectTermButton")).click();
+        Thread.sleep(DELAY);
 
         // Navigate to cst599 assignments
         String assignmentsLinkPath = "//td[text()='cst599']/..//*[@id='assignmentsLink']";
         driver.findElement(By.xpath(assignmentsLinkPath)).click();
+        Thread.sleep(DELAY);
 
         // Navigate to add assignment dialog
         driver.findElement(By.id("addAssignmentButton")).click();
+        Thread.sleep(DELAY);
 
         // Add Assignment Dialog Variables
         String addDialogPath = "//button[@id='addAssignmentButton']/following-sibling::dialog//";
@@ -81,12 +85,14 @@ public class AddAssignmentSystemTest {
 
         // Try to add assignment with no title
         driver.findElement(By.xpath(addSaveButtonPath)).click();
+        Thread.sleep(DELAY);
         // Check message
         assertNotNull(driver.findElement(By.xpath("//*[contains(text(), 'cannot be blank')]")));
 
         // Try to add assignment with invalid characters in title
         driver.findElement(By.xpath(addTitlePath)).sendKeys("!@#$%^&*()");
         driver.findElement(By.xpath(addSaveButtonPath)).click();
+        Thread.sleep(DELAY);
         // Check message
         assertNotNull(driver.findElement(By.xpath("//*[contains(text(), 'invalid char in title')]")));
         // Clear title input
@@ -100,6 +106,7 @@ public class AddAssignmentSystemTest {
         driver.findElement(By.xpath(addTitlePath)).sendKeys(title);
         // Try to save assignment
         driver.findElement(By.xpath(addSaveButtonPath)).click();
+        Thread.sleep(DELAY);
         // Check message
         assertNotNull(driver.findElement(By.xpath("//*[contains(text(), 'invalid due date')]")));
 
@@ -121,10 +128,12 @@ public class AddAssignmentSystemTest {
         driver.findElement(By.xpath(addDueDatePath)).sendKeys(dueDateInput);
         // Click save
         driver.findElement(By.xpath(addSaveButtonPath)).click();
+        Thread.sleep(DELAY);
         // Check message
         assertNotNull(driver.findElement(By.xpath("//*[contains(text(), 'successfully created')]")));
         // Click close
         driver.findElement(By.xpath(addDialogPath + "button[@id='closeButton']")).click();
+        Thread.sleep(DELAY);
 
         // Check that assignment was added to list
         String assignmentTitlePath = "//td[text()='" + title + "']";
@@ -133,6 +142,7 @@ public class AddAssignmentSystemTest {
         // Navigate to assignment grades
         String gradeButtonPath = assignmentTitlePath + "/..//button[@id='gradeButton']";
         driver.findElement(By.xpath(gradeButtonPath)).click();
+        Thread.sleep(DELAY);
 
         // Grade dialog variables
         String[] grades = {"60", "88", "98"};
@@ -152,14 +162,17 @@ public class AddAssignmentSystemTest {
         }
         // Save Grades
         driver.findElement(By.xpath(openDialogSaveButtonPath)).click();
+        Thread.sleep(DELAY);
         assertNotNull(driver.findElement(By.xpath("//*[contains(text(), 'Grades saved')]")));
         // Check message
         // Close grades dialog
         driver.findElement(By.xpath(openDialogCloseButtonPath)).click();
+        Thread.sleep(DELAY);
 
         // Check that grades were saved
         // Reopen grades dialog
         driver.findElement(By.xpath(gradeButtonPath)).click();
+        Thread.sleep(DELAY);
         // Check that entered grades match
         inputs = driver.findElements(By.xpath(openDialogInputsPath));
         assertEquals(grades.length, inputs.size());
