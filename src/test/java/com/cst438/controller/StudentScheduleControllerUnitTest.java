@@ -45,6 +45,7 @@ public class StudentScheduleControllerUnitTest {
     static final String testStudentPassword = "test";
 
     int testStudentId;
+    int originalCapacity;
     Date originalAddDate;
     Date originalAddDeadline;
     Date originalDropDeadline;
@@ -85,9 +86,13 @@ public class StudentScheduleControllerUnitTest {
         Section section = sectionRepository.findById(testSectionNo).orElseThrow();
         Term term = section.getTerm();
 
+        originalCapacity = section.getCapacity();
         originalAddDate = term.getAddDate();
         originalAddDeadline = term.getAddDeadline();
         originalDropDeadline = term.getDropDeadline();
+
+        section.setCapacity(30);
+        sectionRepository.save(section);
 
         term.setAddDate(Date.valueOf(LocalDate.now().minusDays(1)));
         term.setAddDeadline(Date.valueOf(LocalDate.now().plusDays(1)));
@@ -111,6 +116,9 @@ public class StudentScheduleControllerUnitTest {
 
         Section section = sectionRepository.findById(testSectionNo).orElseThrow();
         Term term = section.getTerm();
+
+        section.setCapacity(originalCapacity);
+        sectionRepository.save(section);
 
         term.setAddDate(originalAddDate);
         term.setAddDeadline(originalAddDeadline);
@@ -188,6 +196,49 @@ public class StudentScheduleControllerUnitTest {
 
         verify(gradebookService, never())
                 .sendMessage(eq("addEnrollment"), any());
+    }
+
+    @Test
+    public void addCourseFullTest() {
+        User existingStudent = userRepository.findByEmail("sam@csumb.edu");
+        Section section = sectionRepository.findById(testSectionNo).orElseThrow();
+
+        section.setCapacity(1);
+        sectionRepository.save(section);
+
+        Enrollment existingEnrollment = new Enrollment();
+        existingEnrollment.setStudent(existingStudent);
+        existingEnrollment.setSection(section);
+        existingEnrollment.setGrade(null);
+        enrollmentRepository.save(existingEnrollment);
+
+        try {
+            String jwt = login(testStudentEmail, testStudentPassword);
+
+            client.post()
+                    .uri("/enrollments/sections/" + testSectionNo)
+                    .headers(headers -> headers.setBearerAuth(jwt))
+                    .accept(MediaType.APPLICATION_JSON)
+                    .exchange()
+                    .expectStatus().isBadRequest()
+                    .expectBody()
+                    .jsonPath("$.errors[?(@=='course is full')]").exists();
+
+            Enrollment testStudentEnrollment =
+                    enrollmentRepository.findEnrollmentBySectionNoAndStudentId(
+                            testSectionNo,
+                            testStudentId
+                    );
+
+            assertNull(testStudentEnrollment);
+
+            verify(gradebookService, never())
+                    .sendMessage(eq("addEnrollment"), any());
+        } finally {
+            enrollmentRepository.deleteById(
+                    existingEnrollment.getEnrollmentId()
+            );
+        }
     }
 
     @Test
