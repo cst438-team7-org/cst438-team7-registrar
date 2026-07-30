@@ -99,5 +99,22 @@ public class StudentViewsAssignmentsAndGradesSystemTest {
         driver.findElement(By.id("loginButton")).click();
         Thread.sleep(DELAY);
 
+        // navigate to view assignments
+        driver.findElement(By.id("viewAssignmentsLink")).click();
+        Thread.sleep(DELAY);
+
+        // enter term 2025 Fall
+        driver.findElement(By.id("year")).sendKeys("2025");
+        driver.findElement(By.id("semester")).sendKeys("Fall");
+        driver.findElement(By.id("selectTermButton")).click();
+        Thread.sleep(DELAY);
+
+        // verify new assignment appears in cst599
+        assertNotNull(driver.findElement(By.xpath("//td[text()='" + title + "']")));
+
+        // verify score is blank
+        String scoreText = driver.findElement(By.xpath("//td[text()='" + title + "']/following-sibling::td[last()]")).getText();
+        assertEquals("", scoreText);
+
     }
 }
