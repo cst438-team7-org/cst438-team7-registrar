@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class StudentViewsAssignmentsAndGradesSystemTest {
 
-    static final String CHROME_DRIVER_FILE_LOCATION = "/Users/jian/chromedriver/chromedriver";
+    static final String CHROME_DRIVER_FILE_LOCATION = "";
     static final String URL = "http://localhost:5173";
 
     static final int DELAY = 2000;
