@@ -89,5 +89,15 @@ public class StudentViewsAssignmentsAndGradesSystemTest {
         // verify assignment appears in the assignments list
         assertNotNull(driver.findElement(By.xpath("//td[text()='" + title + "']")));
 
+        // logout as instructor
+        driver.findElement(By.id("logoutLink")).click();
+        Thread.sleep(DELAY);
+
+        // login as student samb
+        driver.findElement(By.id("email")).sendKeys("samb@csumb.edu");
+        driver.findElement(By.id("password")).sendKeys("samb2025");
+        driver.findElement(By.id("loginButton")).click();
+        Thread.sleep(DELAY);
+
     }
 }
