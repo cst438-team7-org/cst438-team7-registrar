@@ -66,5 +66,28 @@ public class StudentViewsAssignmentsAndGradesSystemTest {
         driver.findElement(By.xpath("//td[text()='cst599']/..//*[@id='assignmentsLink']")).click();
         Thread.sleep(DELAY);
 
+        // open add assignment dialog
+        driver.findElement(By.id("addAssignmentButton")).click();
+        Thread.sleep(DELAY);
+
+        // enter assignment details
+        String title = "Assignment " + Math.abs(random.nextInt());
+        String addDialogPath  = "//button[@id='addAssignmentButton']/following-sibling::dialog//";
+
+        driver.findElement(By.xpath(addDialogPath + "input[@id='title']")).sendKeys(title);
+        driver.findElement(By.xpath(addDialogPath + "input[@id='dueDate']")).sendKeys("09152025");
+        driver.findElement(By.xpath(addDialogPath + "button[@id='saveButton']")).click();
+        Thread.sleep(DELAY);
+
+        // verify assignment was created
+        assertNotNull(driver.findElement(By.xpath("//*[contains(text(), 'successfully created')]")));
+
+        // close dialog
+        driver.findElement(By.xpath(addDialogPath + "button[@id='closeButton']")).click();
+        Thread.sleep(DELAY);
+
+        // verify assignment appears in the assignments list
+        assertNotNull(driver.findElement(By.xpath("//td[text()='" + title + "']")));
+
     }
 }
