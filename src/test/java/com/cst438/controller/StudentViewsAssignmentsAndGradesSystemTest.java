@@ -3,6 +3,7 @@ package com.cst438.controller;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -11,6 +12,8 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
 import java.util.Random;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class StudentViewsAssignmentsAndGradesSystemTest {
 
@@ -46,6 +49,22 @@ public class StudentViewsAssignmentsAndGradesSystemTest {
 
     @Test
     public void studentViewsAssignmentsAndGrades() throws InterruptedException {
+
+        // login as instructor
+        driver.findElement(By.id("email")).sendKeys("ted@csumb.edu");
+        driver.findElement(By.id("password")).sendKeys("ted2025");
+        driver.findElement(By.id("loginButton")).click();
+        Thread.sleep(DELAY);
+
+        // enter term 2025 Fall
+        driver.findElement(By.id("year")).sendKeys("2025");
+        driver.findElement(By.id("semester")).sendKeys("Fall");
+        driver.findElement(By.id("selectTermButton")).click();
+        Thread.sleep(DELAY);
+
+        // navigate to cst599 assignments
+        driver.findElement(By.xpath("//td[text()='cst599']/..//*[@id='assignmentsLink']")).click();
+        Thread.sleep(DELAY);
 
     }
 }
